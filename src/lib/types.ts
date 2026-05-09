@@ -15,13 +15,33 @@ export interface Skill {
 
 export interface Career {
   id: string
+
   title: string
-  description: string
+  slug: string
+
+  short_description: string
+  full_description: string
+
+  junior_salary_range: string
+  mid_salary_range: string
+  senior_salary_range: string
+
+  demand: 'High' | 'Medium' | 'Low'
+
+  difficulty_level:
+    | 'Beginner'
+    | 'Intermediate'
+    | 'Advanced'
+
+  duration_estimate: string
+
+  image_url: string | null
+
+  featured: boolean
+
   category_id: string
-  demand_level: 'high' | 'medium' | 'low'
-  avg_salary: number
+
   created_at: string
-  updated_at: string
 }
 
 export interface CareerSkill {

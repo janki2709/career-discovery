@@ -1,6 +1,10 @@
+//src/lib/validations.ts
+
 import { z } from 'zod'
 
-// ─── Category ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Category
+// ─────────────────────────────────────────────────────────────
 
 export const categorySchema = z.object({
   name: z
@@ -12,7 +16,9 @@ export const categorySchema = z.object({
 
 export type CategoryFormData = z.infer<typeof categorySchema>
 
-// ─── Skill ────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Skill
+// ─────────────────────────────────────────────────────────────
 
 export const skillSchema = z.object({
   name: z
@@ -20,6 +26,7 @@ export const skillSchema = z.object({
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must be under 100 characters')
     .trim(),
+
   demand_percentage: z
     .number({error: 'Must be a number',})
     .int('Must be a whole number')
@@ -29,7 +36,9 @@ export const skillSchema = z.object({
 
 export type SkillFormData = z.infer<typeof skillSchema>
 
-// ─── Career ───────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Career
+// ─────────────────────────────────────────────────────────────
 
 export const careerSchema = z.object({
   title: z
@@ -40,8 +49,8 @@ export const careerSchema = z.object({
 
   slug: z
     .string()
-    .min(2)
-    .max(150)
+    .min(2, 'Slug must be at least 2 characters')
+    .max(150, 'Slug must be under 150 characters')
     .trim(),
 
   short_description: z
@@ -57,28 +66,49 @@ export const careerSchema = z.object({
     .trim(),
 
   junior_salary_range: z.string().trim(),
+
   mid_salary_range: z.string().trim(),
+
   senior_salary_range: z.string().trim(),
 
   demand: z.enum(['High', 'Medium', 'Low']),
 
-  difficulty_level: z.enum(['Beginner', 'Intermediate', 'Advanced']),
+  difficulty_level: z.enum([
+    'Beginner',
+    'Intermediate',
+    'Advanced',
+  ]),
 
-  duration_estimate: z.string().trim(),
+  duration_estimate: z
+    .string()
+    .min(1, 'Duration estimate is required')
+    .trim(),
 
-  image_url: z.string().url().optional().or(z.literal('')),
+  image_url: z
+    .string()
+    .url('Must be a valid URL')
+    .optional()
+    .or(z.literal('')),
 
   featured: z.boolean(),
 
   category_id: z.string().uuid('Invalid category'),
 })
 
-// ─── Search / filter params ───────────────────────────────────────────────────
+export type CareerFormData = z.infer<typeof careerSchema>
+
+// ─────────────────────────────────────────────────────────────
+// Career Filters
+// ─────────────────────────────────────────────────────────────
 
 export const careerFiltersSchema = z.object({
   search: z.string().trim().optional(),
+
   category_id: z.string().uuid().optional(),
+
   demand: z.enum(['High', 'Medium', 'Low']).optional(),
+
   page: z.coerce.number().int().min(1).default(1),
+
   limit: z.coerce.number().int().min(1).max(50).default(12),
 })

@@ -1,13 +1,17 @@
+// src/components/career-form.tsx
+
 'use client'
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+
 import {
   Select,
   SelectContent,
@@ -15,7 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { careerSchema, type CareerFormData } from '@/lib/validations'
+
+import {
+  careerSchema,
+  type CareerFormData,
+} from '@/lib/validations'
+
 import type { Career, Category } from '@/lib/types'
 
 interface Props {
@@ -23,8 +32,12 @@ interface Props {
   existing?: Career
 }
 
-export function CareerForm({ categories, existing }: Props) {
+export function CareerForm({
+  categories,
+  existing,
+}: Props) {
   const router = useRouter()
+
   const isEdit = !!existing
 
   const {
@@ -35,123 +48,294 @@ export function CareerForm({ categories, existing }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<CareerFormData>({
     resolver: zodResolver(careerSchema),
+
     defaultValues: {
       title: existing?.title ?? '',
-      description: existing?.description ?? '',
+      slug: existing?.slug ?? '',
+      short_description:
+        existing?.short_description ?? '',
+      full_description:
+        existing?.full_description ?? '',
+
+      junior_salary_range:
+        existing?.junior_salary_range ?? '',
+
+      mid_salary_range:
+        existing?.mid_salary_range ?? '',
+
+      senior_salary_range:
+        existing?.senior_salary_range ?? '',
+
+      demand:
+        (existing?.demand as CareerFormData['demand']) ??
+        undefined,
+
+      difficulty_level:
+        (
+          existing?.difficulty_level as CareerFormData['difficulty_level']
+        ) ?? undefined,
+
+      duration_estimate:
+        existing?.duration_estimate ?? '',
+
+      image_url: existing?.image_url ?? '',
+
+      featured: existing?.featured ?? false,
+
       category_id: existing?.category_id ?? '',
-      demand_level: existing?.demand_level ?? undefined,
-      avg_salary: existing?.avg_salary ?? undefined,
     },
   })
 
-  const onSubmit = async (data: CareerFormData) => {
-    const url = isEdit ? `/api/careers/${existing!.id}` : '/api/careers'
-    const method = isEdit ? 'PUT' : 'POST'
+  const selectedDemand = watch('demand')
 
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    })
+  const selectedDifficulty =
+    watch('difficulty_level')
 
-    if (!res.ok) {
+  async function onSubmit(data: CareerFormData) {
+    try {
+      const url = isEdit
+        ? `/api/admin/careers/${existing!.id}`
+        : '/api/admin/careers'
+
+      const method = isEdit ? 'PUT' : 'POST'
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
       const json = await res.json()
-      toast.error(json?.error ?? 'Failed to save career.')
-      return
-    }
 
-    const career = await res.json()
-    toast.success(isEdit ? 'Career updated' : 'Career created')
-    router.push(`/careers/${career.id}`)
-    router.refresh()
+      if (!res.ok) {
+        toast.error(json?.error ?? 'Failed to save career')
+        return
+      }
+
+      toast.success(
+        isEdit
+          ? 'Career updated successfully'
+          : 'Career created successfully'
+      )
+
+      router.push('/admin/careers')
+      router.refresh()
+    } catch (error) {
+      console.error(error)
+      toast.error('Something went wrong')
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-2xl">
-      {/* Title */}
-      <div className="space-y-1">
-        <Label htmlFor="title">Title</Label>
-        <Input id="title" placeholder="e.g. Data Analyst" {...register('title')} />
-        {errors.title && <p className="text-sm text-red-500">{errors.title.message}</p>}
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-6 max-w-3xl"
+    >
+      <div className="space-y-2">
+        <Label>Title</Label>
+        <Input {...register('title')} />
+        {errors.title && (
+          <p className="text-sm text-red-500">
+            {errors.title.message}
+          </p>
+        )}
       </div>
 
-      {/* Description */}
-      <div className="space-y-1">
-        <Label htmlFor="description">Description</Label>
+      <div className="space-y-2">
+        <Label>Slug</Label>
+        <Input {...register('slug')} />
+        {errors.slug && (
+          <p className="text-sm text-red-500">
+            {errors.slug.message}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label>Short Description</Label>
         <Textarea
-          id="description"
-          placeholder="Describe what this career involves..."
-          rows={5}
-          {...register('description')}
+          rows={3}
+          {...register('short_description')}
         />
-        {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
+        {errors.short_description && (
+          <p className="text-sm text-red-500">
+            {errors.short_description.message}
+          </p>
+        )}
       </div>
 
-      {/* Category */}
-      <div className="space-y-1">
-        <Label>Category</Label>
+      <div className="space-y-2">
+        <Label>Full Description</Label>
+        <Textarea
+          rows={8}
+          {...register('full_description')}
+        />
+        {errors.full_description && (
+          <p className="text-sm text-red-500">
+            {errors.full_description.message}
+          </p>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <Label>Junior Salary</Label>
+          <Input
+            {...register('junior_salary_range')}
+          />
+        </div>
+
+        <div>
+          <Label>Mid Salary</Label>
+          <Input
+            {...register('mid_salary_range')}
+          />
+        </div>
+
+        <div>
+          <Label>Senior Salary</Label>
+          <Input
+            {...register('senior_salary_range')}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Demand</Label>
+
         <Select
-          defaultValue={existing?.category_id}
-          onValueChange={(val) => setValue('category_id', val, { shouldValidate: true })}
+          value={selectedDemand}
+          onValueChange={(value) =>
+            setValue(
+              'demand',
+              value as CareerFormData['demand'],
+              {
+                shouldValidate: true,
+              }
+            )
+          }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select a category" />
+            <SelectValue placeholder="Select demand" />
           </SelectTrigger>
+
           <SelectContent>
-            {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.name}
+            <SelectItem value="High">
+              High
+            </SelectItem>
+
+            <SelectItem value="Medium">
+              Medium
+            </SelectItem>
+
+            <SelectItem value="Low">
+              Low
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Difficulty Level</Label>
+
+        <Select
+          value={selectedDifficulty}
+          onValueChange={(value) =>
+            setValue(
+              'difficulty_level',
+              value as CareerFormData['difficulty_level'],
+              {
+                shouldValidate: true,
+              }
+            )
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select difficulty" />
+          </SelectTrigger>
+
+          <SelectContent>
+            <SelectItem value="Beginner">
+              Beginner
+            </SelectItem>
+
+            <SelectItem value="Intermediate">
+              Intermediate
+            </SelectItem>
+
+            <SelectItem value="Advanced">
+              Advanced
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Duration Estimate</Label>
+        <Input
+          {...register('duration_estimate')}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Image URL</Label>
+        <Input {...register('image_url')} />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Category</Label>
+
+        <Select
+          defaultValue={existing?.category_id}
+          onValueChange={(value) =>
+            setValue('category_id', value, {
+              shouldValidate: true,
+            })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+
+          <SelectContent>
+            {categories.map((category) => (
+              <SelectItem
+                key={category.id}
+                value={category.id}
+              >
+                {category.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {errors.category_id && <p className="text-sm text-red-500">{errors.category_id.message}</p>}
       </div>
 
-      {/* Demand level */}
-      <div className="space-y-1">
-        <Label>Demand level</Label>
-        <Select
-          defaultValue={existing?.demand_level}
-          onValueChange={(val) =>
-            setValue('demand_level', val as CareerFormData['demand_level'], { shouldValidate: true })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select demand level" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="low">Low</SelectItem>
-          </SelectContent>
-        </Select>
-        {errors.demand_level && <p className="text-sm text-red-500">{errors.demand_level.message}</p>}
-      </div>
-
-      {/* Salary */}
-      <div className="space-y-1">
-        <Label htmlFor="avg_salary">Average salary (USD)</Label>
-        <Input
-          id="avg_salary"
-          type="number"
-          placeholder="e.g. 95000"
-          {...register('avg_salary', { valueAsNumber: true })}
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          {...register('featured')}
         />
-        {errors.avg_salary && <p className="text-sm text-red-500">{errors.avg_salary.message}</p>}
+
+        <Label>Featured Career</Label>
       </div>
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-4">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
-          disabled={isSubmitting}
         >
           Cancel
         </Button>
-        <Button type="submit" className="bg-violet-600 hover:bg-violet-700" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : isEdit ? 'Update Career' : 'Create Career'}
+
+        <Button type="submit">
+          {isSubmitting
+            ? 'Saving...'
+            : isEdit
+              ? 'Update Career'
+              : 'Create Career'}
         </Button>
       </div>
     </form>
