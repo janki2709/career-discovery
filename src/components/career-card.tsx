@@ -18,16 +18,8 @@ const DEMAND_STYLES: Record<string, string> = {
   low: 'bg-slate-100 text-slate-500 border-slate-200',
 }
 
-function formatSalary(value: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(value)
-}
-
 export function CareerCard({ career, isSaved = false, showSaveButton = true }: Props) {
-  const demandKey = career.demand_level?.toLowerCase() ?? ''
+  const demandKey = career.demand?.toLowerCase() ?? ''
   const categoryName = (career.categories as { name: string } | null)?.name ?? ''
 
   return (
@@ -62,9 +54,9 @@ export function CareerCard({ career, isSaved = false, showSaveButton = true }: P
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {career.avg_salary != null && (
+            {career.mid_salary_range && (
               <span className="text-sm font-semibold text-slate-700">
-                {formatSalary(Number(career.avg_salary))}
+                {career.mid_salary_range}
               </span>
             )}
             {showSaveButton && (
