@@ -10,12 +10,32 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('career_skills')
-    .select('skills(id, name, demand_percentage)')
+    .select(`
+      display_order,
+      skills (
+        id,
+        name,
+        slug,
+        description
+      )
+    `)
     .eq('career_id', id)
+    .order('display_order')
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    )
+  }
 
-  const skills = data.map((row) => row.skills).filter(Boolean)
+  const skills = data
+    .map((row) => ({
+      ...row.skills,
+      display_order: row.display_order,
+    }))
+    .filter(Boolean)
+
   return NextResponse.json(skills)
 }
 
