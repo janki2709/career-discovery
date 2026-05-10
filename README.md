@@ -1,36 +1,454 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Career Discovery Platform
 
-## Getting Started
+A full-stack career discovery and learning platform built with Next.js and Supabase.
 
-First, run the development server:
+The platform helps users explore career paths, discover required skills, access curated learning resources, track learning progress, and save careers for future reference.
+
+This project was built as a full-stack technical assessment.
+
+---
+
+# Live Demo
+
+Frontend:
+https://career-discovery-orcin.vercel.app/
+
+Backend API:
+https://career-discovery-orcin.vercel.app/api/careers
+
+GitHub Repository:
+https://github.com/janki2709/career-discovery
+
+---
+
+# Test Credentials
+
+Email:
+j.padiya25@gmail.com
+
+Password:
+Test@12345
+
+---
+
+# Tech Stack
+
+## Frontend
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui
+- React Hook Form
+- Zod
+- TanStack Query
+- Lucide Icons
+- Sonner Toasts
+
+## Backend
+- Next.js App Router API Routes
+- Supabase
+- PostgreSQL
+- Supabase Auth
+- Supabase SSR
+
+## Deployment
+- Vercel
+- Supabase Cloud Database
+
+---
+
+# Features
+
+## Public Features
+
+- Browse careers
+- View detailed career information
+- Explore career categories
+- View required skills for each career
+- Access curated learning resources
+- Filter careers by category
+
+---
+
+## Authenticated User Features
+
+- Email/password authentication
+- Save careers
+- Track learning progress
+- Persist user progress
+- Personalized dashboard
+
+---
+
+## Admin Features
+
+- Create careers
+- Update careers
+- Delete careers
+- Create categories
+- Update categories
+- Delete categories
+- Create skills
+- Update skills
+- Delete skills
+
+Note:
+This assessment intentionally does not implement RBAC (Role-Based Access Control). Any authenticated user can access admin functionality for MVP simplicity.
+
+---
+
+# Authentication Architecture
+
+This project uses Supabase Authentication with email/password authentication.
+
+## Authentication Flow
+
+- Users authenticate using Supabase Auth.
+- Supabase manages JWT-based sessions.
+- Session cookies are persisted securely.
+- Server-side authentication uses Supabase SSR helpers.
+- Protected routes validate authenticated users server-side.
+- Unauthenticated users receive a 401 Unauthorized response.
+
+Example:
+
+const {
+  data: { user },
+} = await supabase.auth.getUser()
+
+
+# API Documentation
+
+## Base URL
+
+`https://career-discovery-orcin.vercel.app/api`
+
+---
+
+# Public Endpoints
+
+## Get all careers
+
+**GET** `/api/careers`
+
+Returns all available careers.
+
+---
+
+## Get career details
+
+**GET** `/api/careers/:id`
+
+Returns detailed information about a specific career.
+
+---
+
+## Get career skills
+
+**GET** `/api/careers/:id/skills`
+
+Returns skills associated with a specific career.
+
+---
+
+## Get learning resources
+
+**GET** `/api/careers/:id/learn`
+
+Returns curated learning resources for a specific career.
+
+---
+
+## Get categories
+
+**GET** `/api/categories`
+
+Returns all categories.
+
+---
+
+## Get careers by category
+
+**GET** `/api/categories/:id`
+
+Returns careers associated with a category.
+
+---
+
+## Get skills
+
+**GET** `/api/skills`
+
+Returns all skills.
+
+---
+
+# Authenticated Endpoints
+
+## User Progress
+
+**GET** `/api/progress`
+
+Returns:
+
+* total resources
+* completed resources
+* progress percentage
+
+for authenticated users.
+
+Unauthenticated users receive:
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+---
+
+## Saved Careers
+
+**GET** `/api/saved-careers`
+
+Returns saved careers for authenticated users.
+
+---
+
+# Admin Endpoints
+
+## Careers Admin
+
+`/api/admin/careers`
+
+Supports:
+
+* GET
+* POST
+
+---
+
+## Career CRUD
+
+`/api/admin/careers/:id`
+
+Supports:
+
+* GET
+* PUT
+* DELETE
+
+---
+
+## Categories Admin
+
+`/api/admin/categories`
+
+Supports:
+
+* GET
+* POST
+
+---
+
+## Category CRUD
+
+`/api/admin/categories/:id`
+
+Supports:
+
+* GET
+* PUT
+* DELETE
+
+---
+
+## Skills Admin
+
+`/api/admin/skills`
+
+Supports:
+
+* GET
+* POST
+
+---
+
+## Skill CRUD
+
+`/api/admin/skills/:id`
+
+Supports:
+
+* GET
+* PUT
+* DELETE
+
+## Project Structure
+
+```txt
+src/
+├── app/
+│   ├── (app)/
+│   ├── (auth)/
+│   ├── admin/
+│   ├── api/
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+│
+├── components/
+│   ├── ui/
+│   └── shared-components/
+│
+├── lib/
+│   ├── supabase/
+│   ├── types.ts
+│   ├── utils.ts
+│   └── validations.ts
+│
+├── services/
+│   └── auth.ts
+│
+└── middleware.ts
+```
+
+
+# Database Architecture
+
+The project uses PostgreSQL via Supabase.
+
+# Main Tables
+
+## careers
+
+Stores career information.
+
+## categories
+
+Stores career categories.
+
+## skills
+
+Stores skills associated with careers.
+
+## career_skills
+
+Many-to-many relationship between careers and skills.
+
+## learning_resources
+
+Stores external learning resources linked to skills.
+
+## saved_careers
+
+Stores bookmarked careers per user.
+
+## profiles
+
+Stores user profile information.
+
+# Database Schema / Migrations
+
+Database schema is included in:
+
+database/schema.sql
+
+
+The schema was managed directly through Supabase SQL editor during development.
+
+# Seed / Sample Data
+
+Sample seed data is included in:
+
+database/seed.sql
+
+Includes:
+
+- categories
+- careers
+- skills
+- learning resources
+- relationship mappings
+
+---
+
+# Architecture Explanation
+
+## Frontend Architecture
+
+- Next.js App Router
+- Server Components + Client Components
+- Reusable UI components using shadcn/ui
+- Form validation using Zod + React Hook Form
+
+## Backend Architecture
+
+- API routes implemented using Next.js Route Handlers
+- Supabase used as:
+  - PostgreSQL database
+  - authentication provider
+  - backend service layer
+
+# Data Flow
+
+```txt
+Client UI
+   ↓
+Next.js API Routes
+   ↓
+Supabase Client
+   ↓
+PostgreSQL Database
+```
+
+
+# Local Development
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+## Run development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Build production app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+# Deployment
 
-To learn more about Next.js, take a look at the following resources:
+The application is deployed on:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Vercel
+- Supabase
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+# Future Improvements
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Potential future improvements include:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- RBAC admin authorization
+- Search and advanced filtering
+- Career recommendation engine
+- AI-assisted learning roadmap generation
+- Resource completion analytics
+- Pagination and caching improvements
+- Automated migration tooling
+
+---
+
+# Author
+
+Janki Padiya

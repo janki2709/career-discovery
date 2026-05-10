@@ -9,8 +9,14 @@ export async function GET(request: Request) {
 
   let query = supabase
     .from('skills')
-    .select('id, name, demand_percentage, created_at')
-    .order('demand_percentage', { ascending: false })
+    .select(`
+      id,
+      name,
+      slug,
+      description,
+      created_at
+    `)
+    .order('created_at', { ascending: false })
 
   if (search) {
     query = query.ilike('name', `%${search}%`)
@@ -18,7 +24,12 @@ export async function GET(request: Request) {
 
   const { data, error } = await query
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 500 }
+    )
+  }
 
   return NextResponse.json(data)
 }
