@@ -1,3 +1,5 @@
+// src/app/(app)/careers/[id]/learn/page.tsx
+
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -57,6 +59,8 @@ type LearnResponse = {
 }
 
 export default function CareerLearnPage() {
+  const t0 = Date.now()
+
   const params = useParams()
 
   const [data, setData] =
@@ -69,14 +73,20 @@ export default function CareerLearnPage() {
     useState<string | null>(null)
 
   const fetchLearningData = async () => {
+    const t1 = Date.now()
+
     try {
       setLoading(true)
 
+      const t2 = Date.now()
       const response = await fetch(
         `/api/careers/${params.id}/learn`
       )
+      console.log(`fetch learning api: ${Date.now() - t2}ms`)
 
+      const t3 = Date.now()
       const result = await response.json()
+      console.log(`response.json learning: ${Date.now() - t3}ms`)
 
       if (!response.ok) {
         throw new Error(
@@ -96,12 +106,15 @@ export default function CareerLearnPage() {
       )
     } finally {
       setLoading(false)
+      console.log(`fetchLearningData total: ${Date.now() - t1}ms`)
     }
   }
 
   useEffect(() => {
     fetchLearningData()
   }, [])
+
+  console.log(`total: ${Date.now() - t0}ms`)
 
   if (loading) {
     return (

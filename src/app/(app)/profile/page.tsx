@@ -21,7 +21,12 @@ type Profile = {
 }
 
 export default function ProfilePage() {
+  const t0 = Date.now()
+
+  const t1 = Date.now()
   const supabase = createClient()
+  console.log(`createClient: ${Date.now() - t1}ms`)
+
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
@@ -36,15 +41,20 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function load() {
+      const t2 = Date.now()
       const { data: { user } } = await supabase.auth.getUser()
+      console.log(`auth.getUser: ${Date.now() - t2}ms`)
+
       if (!user) return
       setUserId(user.id)
 
+      const t3 = Date.now()
       const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
+      console.log(`query profiles: ${Date.now() - t3}ms`)
 
       if (data) {
         setForm({
@@ -56,17 +66,24 @@ export default function ProfilePage() {
           city: data.city ?? '',
         })
       }
+
       setLoading(false)
     }
+
     load()
   }, [])
 
-  const set = (key: keyof Profile, val: string) => setForm(f => ({ ...f, [key]: val }))
+  const set = (key: keyof Profile, val: string) =>
+    setForm(f => ({ ...f, [key]: val }))
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
+
     if (!userId) return
+
     setSaving(true)
+
+    const t4 = Date.now()
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -77,10 +94,19 @@ export default function ProfilePage() {
         city: form.city,
       })
       .eq('id', userId)
+    console.log(`update profiles: ${Date.now() - t4}ms`)
+
     setSaving(false)
-    if (error) { toast.error(error.message); return }
+
+    if (error) {
+      toast.error(error.message)
+      return
+    }
+
     toast.success('Profile updated!')
   }
+
+  console.log(`total: ${Date.now() - t0}ms`)
 
   if (loading) {
     return (

@@ -22,48 +22,83 @@ type Skill = {
 }
 
 export default function SkillsPage() {
+  const t0 = Date.now()
+
+  const t1 = Date.now()
   const supabase = createClient()
+  console.log(`createClient: ${Date.now() - t1}ms`)
+
   const [skills, setSkills] = useState<Skill[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
+    const t2 = Date.now()
+
+    supabase.auth.getUser().then(({ data }) => {
+      console.log(`auth.getUser: ${Date.now() - t2}ms`)
+      setUserId(data.user?.id ?? null)
+    })
   }, [])
 
   const fetchSkills = useCallback(async () => {
     if (!userId) return
+
     setLoading(true)
 
-    let query = supabase.from('skills').select('id, name, slug, description')
-    if (search) query = query.ilike('name', `%${search}%`)
-    const { data: skillsData } = await query.order('name')
+    let query = supabase
+      .from('skills')
+      .select('id, name, slug, description')
 
-    if (!skillsData) { setLoading(false); return }
+    if (search) {
+      query = query.ilike('name', `%${search}%`)
+    }
+
+    const t3 = Date.now()
+    const { data: skillsData } = await query.order('name')
+    console.log(`query skills: ${Date.now() - t3}ms`)
+
+    if (!skillsData) {
+      setLoading(false)
+      return
+    }
 
     // Fetch progress for each skill
+    const t4 = Date.now()
+
     const enriched = await Promise.all(
       skillsData.map(async (skill) => {
+        const t5 = Date.now()
         const { count: resourceCount } = await supabase
           .from('learning_resources')
           .select('*', { count: 'exact', head: true })
           .eq('skill_id', skill.id)
+        console.log(`count learning_resources (${skill.id}): ${Date.now() - t5}ms`)
 
+        const t6 = Date.now()
         const { data: resources } = await supabase
           .from('learning_resources')
           .select('id')
           .eq('skill_id', skill.id)
+        console.log(`query learning_resources (${skill.id}): ${Date.now() - t6}ms`)
 
         const resourceIds = (resources ?? []).map(r => r.id)
+
         let completedCount = 0
+
         if (resourceIds.length > 0) {
+          const t7 = Date.now()
+
           const { count } = await supabase
             .from('user_resource_progress')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', userId)
             .eq('completed', true)
             .in('learning_resource_id', resourceIds)
+
+          console.log(`count user_resource_progress (${skill.id}): ${Date.now() - t7}ms`)
+
           completedCount = count ?? 0
         }
 
@@ -75,6 +110,8 @@ export default function SkillsPage() {
       })
     )
 
+    console.log(`queries (skills enrichment): ${Date.now() - t4}ms`)
+
     setSkills(enriched)
     setLoading(false)
   }, [search, userId])
@@ -82,6 +119,8 @@ export default function SkillsPage() {
   useEffect(() => {
     fetchSkills()
   }, [fetchSkills])
+
+  console.log(`skills page total time: ${Date.now() - t0}ms`)
 
   return (
     <div className="space-y-6">

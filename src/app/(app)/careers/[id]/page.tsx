@@ -37,44 +37,59 @@ export default async function CareerDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
+
+  const t0 = Date.now()
+
+  const t1 = Date.now()
   const { id } = await params
+  console.log(`params: ${Date.now() - t1}ms`)
 
+  const t2 = Date.now()
   const supabase = await createClient()
+  console.log(`createClient: ${Date.now() - t2}ms`)
 
+  const t3 = Date.now()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  console.log(`auth.getUser: ${Date.now() - t3}ms`)
 
   if (!user) {
     redirect('/login')
   }
 
-const headersList = await headers()
+  const t4 = Date.now()
+  const headersList = await headers()
+  console.log(`headers: ${Date.now() - t4}ms`)
 
-const host = headersList.get('host')
+  const host = headersList.get('host')
 
-const protocol =
-  process.env.NODE_ENV === 'development'
-    ? 'http'
-    : 'https'
+  const protocol =
+    process.env.NODE_ENV === 'development'
+      ? 'http'
+      : 'https'
 
-const res = await fetch(
-  `${protocol}://${host}/api/careers/${id}`,
-  {
-    cache: 'no-store',
-  }
-)
+  const t5 = Date.now()
+  const res = await fetch(
+    `${protocol}://${host}/api/careers/${id}`,
+    {
+      cache: 'no-store',
+    }
+  )
+  console.log(`fetch career api: ${Date.now() - t5}ms`)
 
   if (!res.ok) {
     notFound()
   }
 
-const text = await res.text()
+  const t6 = Date.now()
+  const text = await res.text()
+  console.log(`response.text: ${Date.now() - t6}ms`)
 
-console.log('RAW RESPONSE:')
-console.log(text)
+  console.log('RAW RESPONSE:')
+  console.log(text)
 
-const career = JSON.parse(text)
+  const career = JSON.parse(text)
 
   const demandKey = career.demand?.toLowerCase() ?? ''
   const difficultyKey = career.difficulty_level?.toLowerCase() ?? ''
@@ -82,6 +97,8 @@ const career = JSON.parse(text)
   const skills = (career.career_skills ?? [])
     .map((cs: any) => cs.skills)
     .filter(Boolean)
+
+  console.log(`total: ${Date.now() - t0}ms`)
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

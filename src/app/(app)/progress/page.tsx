@@ -29,6 +29,8 @@ type CareerProgress = {
 }
 
 export default function ProgressPage() {
+  const t0 = Date.now()
+
   const [careers, setCareers] = useState<
     CareerProgress[]
   >([])
@@ -43,11 +45,15 @@ export default function ProgressPage() {
     try {
       setLoading(true)
 
+      const t1 = Date.now()
       const response = await fetch(
         '/api/progress'
       )
+      console.log(`fetch /api/progress: ${Date.now() - t1}ms`)
 
+      const t2 = Date.now()
       const result = await response.json()
+      console.log(`response.json: ${Date.now() - t2}ms`)
 
       if (!response.ok) {
         throw new Error(
@@ -73,6 +79,8 @@ export default function ProgressPage() {
   useEffect(() => {
     fetchProgress()
   }, [])
+
+  console.log(`total: ${Date.now() - t0}ms`)
 
   if (loading) {
     return (

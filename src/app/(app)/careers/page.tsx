@@ -51,6 +51,8 @@ type Category = {
 }
 
 export default function CareersPage() {
+  const t0 = Date.now()
+
   const router = useRouter()
   const searchParams = useSearchParams()
   const [careers, setCareers] = useState<Career[]>([])
@@ -70,17 +72,19 @@ export default function CareersPage() {
 
   const PAGE_SIZE = 9
 
-useEffect(() => {
-  const categoryId = searchParams.get('category_id')
+  useEffect(() => {
+    const categoryId = searchParams.get('category_id')
 
-  if (categoryId) {
-    setCategoryFilter(categoryId)
-  }
+    if (categoryId) {
+      setCategoryFilter(categoryId)
+    }
 
-  setFiltersInitialized(true)
-}, [searchParams])
+    setFiltersInitialized(true)
+  }, [searchParams])
 
   const fetchCareers = useCallback(async () => {
+    const t1 = Date.now()
+
     try {
       setLoading(true)
       setError(null)
@@ -102,9 +106,13 @@ useEffect(() => {
       params.set('page', String(page))
       params.set('limit', String(PAGE_SIZE))
 
+      const t2 = Date.now()
       const response = await fetch(`/api/careers?${params.toString()}`)
+      console.log(`fetch careers api: ${Date.now() - t2}ms`)
 
+      const t3 = Date.now()
       const result = await response.json()
+      console.log(`response.json careers: ${Date.now() - t3}ms`)
 
       if (!response.ok) {
         throw new Error(
@@ -125,14 +133,21 @@ useEffect(() => {
       setTotal(0)
     } finally {
       setLoading(false)
+      console.log(`fetchCareers total: ${Date.now() - t1}ms`)
     }
   }, [search, categoryFilter, demandFilter, page])
 
   const fetchCategories = useCallback(async () => {
-    try {
-      const response = await fetch('/api/categories')
+    const t4 = Date.now()
 
+    try {
+      const t5 = Date.now()
+      const response = await fetch('/api/categories')
+      console.log(`fetch categories api: ${Date.now() - t5}ms`)
+
+      const t6 = Date.now()
       const result = await response.json()
+      console.log(`response.json categories: ${Date.now() - t6}ms`)
 
       if (!response.ok) {
         throw new Error(result.error || 'Failed to fetch categories')
@@ -141,6 +156,8 @@ useEffect(() => {
       setCategories(result.data ?? result ?? [])
     } catch (err) {
       console.error(err)
+    } finally {
+      console.log(`fetchCategories total: ${Date.now() - t4}ms`)
     }
   }, [])
 
@@ -159,6 +176,8 @@ useEffect(() => {
   }, [fetchCareers, filtersInitialized])
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  console.log(`total: ${Date.now() - t0}ms`)
 
   return (
     <div className="space-y-6">

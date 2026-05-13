@@ -1,4 +1,6 @@
+import { unstable_cache } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import {
@@ -38,11 +40,51 @@ function formatSalary(value: number) {
   }).format(value)
 }
 
+
+const getCachedStaticData = unstable_cache(
+  async () => {
+    // Cookie-free client. Safe for RLS-disabled tables only.
+    const supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    const [
+      { data: categories },
+      { data: popularCareers },
+      { data: skills },
+      { data: recommended },
+    ] = await Promise.all([
+      supabase.from('categories').select('id, name').limit(6),
+      supabase
+        .from('careers')
+        .select('id, title, demand_level, avg_salary, categories(name)')
+        .limit(4),
+      supabase
+        .from('skills')
+        .select('id, name, demand_percentage')
+        .order('demand_percentage', { ascending: false })
+        .limit(3),
+      supabase
+        .from('careers')
+        .select('id, title, demand_level, categories(name)')
+        .order('id', { ascending: false })
+        .limit(3),
+    ])
+
+    return { categories, popularCareers, skills, recommended }
+  },
+  ['dashboard-static-data'],
+  { revalidate: 3600 }
+)
+
 export default async function DashboardPage() {
   const t0 = Date.now()
   const supabase = await createClient()
   console.log(`createClient: ${Date.now() - t0}ms`)
 
+  // getUser() must always be a live call. Never cache this.
+  // Supabase validates the JWT server-side on this call.
   const t1 = Date.now()
   const {
     data: { user },
@@ -50,40 +92,21 @@ export default async function DashboardPage() {
   if (!user) redirect('/login')
   console.log(`getUser: ${Date.now() - t1}ms`)
 
+  // Run the cached static data fetch and the live user-specific query in parallel.
+  // The 4 static queries will hit the cache after the first request.
   const t2 = Date.now()
-  const [
-    { data: categories },
-    { data: popularCareers },
-    { data: skills },
-    { data: userProgress },
-    { data: recommended },
-  ] = await Promise.all([
-    supabase.from('categories').select('id, name').limit(6),
+  const [{ categories, popularCareers, skills, recommended }, { data: userProgress }] =
+    await Promise.all([
+      getCachedStaticData(),
 
-    supabase
-      .from('careers')
-      .select('id, title, demand_level, avg_salary, categories(name)')
-      .limit(4),
-
-    supabase
-      .from('skills')
-      .select('id, name, demand_percentage')
-      .order('demand_percentage', { ascending: false })
-      .limit(3),
-
-    supabase
-      .from('user_skill_progress')
-      .select('id, career_path_name, progress_percentage')
-      .eq('user_id', user.id)
-      .limit(3),
-
-    supabase
-      .from('careers')
-      .select('id, title, demand_level, categories(name)')
-      .order('id', { ascending: false })
-      .limit(3),
-  ])
-  console.log(`all queries: ${Date.now() - t2}ms`)
+      // userProgress is user-specific, so it must remain a live query.
+      supabase
+        .from('user_skill_progress')
+        .select('id, career_path_name, progress_percentage')
+        .eq('user_id', user.id)
+        .limit(3),
+    ])
+  console.log(`queries (static cached + live user): ${Date.now() - t2}ms`)
   console.log(`total: ${Date.now() - t0}ms`)
 
   return (

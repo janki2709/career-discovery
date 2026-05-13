@@ -28,9 +28,14 @@ type Skill = {
 }
 
 export default function SkillDetailPage() {
+  const t0 = Date.now()
+
   const params = useParams()
   const id = params.id as string
+
+  const t1 = Date.now()
   const supabase = createClient()
+  console.log(`SkillDetailPage createClient: ${Date.now() - t1}ms`)
 
   const [skill, setSkill] = useState<Skill | null>(null)
   const [resources, setResources] = useState<Resource[]>([])
@@ -38,7 +43,12 @@ export default function SkillDetailPage() {
   const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
+    const t2 = Date.now()
+
+    supabase.auth.getUser().then(({ data }) => {
+      console.log(`SkillDetailPage auth.getUser: ${Date.now() - t2}ms`)
+      setUserId(data.user?.id ?? null)
+    })
   }, [])
 
   useEffect(() => {
@@ -47,14 +57,24 @@ export default function SkillDetailPage() {
     async function load() {
       setLoading(true)
 
+      const t3 = Date.now()
+
       const { data: skillData } = await supabase
         .from('skills')
         .select('id, name, description')
         .eq('id', id)
         .single()
 
-      if (!skillData) { setLoading(false); return }
+      console.log(`SkillDetailPage query skills: ${Date.now() - t3}ms`)
+
+      if (!skillData) {
+        setLoading(false)
+        return
+      }
+
       setSkill(skillData)
+
+      const t4 = Date.now()
 
       const { data: resourcesData } = await supabase
         .from('learning_resources')
@@ -62,13 +82,21 @@ export default function SkillDetailPage() {
         .eq('skill_id', id)
         .order('created_at')
 
+      console.log(`SkillDetailPage query learning_resources: ${Date.now() - t4}ms`)
+
+      const t5 = Date.now()
+
       const { data: progressData } = await supabase
         .from('user_resource_progress')
         .select('learning_resource_id, completed')
         .eq('user_id', userId!)
 
+      console.log(`SkillDetailPage query user_resource_progress: ${Date.now() - t5}ms`)
+
       const completedSet = new Set(
-        (progressData ?? []).filter(p => p.completed).map(p => p.learning_resource_id)
+        (progressData ?? [])
+          .filter(p => p.completed)
+          .map(p => p.learning_resource_id)
       )
 
       setResources(
@@ -78,82 +106,97 @@ export default function SkillDetailPage() {
           toggling: false,
         }))
       )
+
       setLoading(false)
     }
 
     load()
   }, [userId, id])
 
-async function toggleResource(
-  resourceId: string,
-  currentlyCompleted: boolean
-) {
-  setResources(prev =>
-    prev.map(r =>
-      r.id === resourceId
-        ? { ...r, toggling: true }
-        : r
+  async function toggleResource(
+    resourceId: string,
+    currentlyCompleted: boolean
+  ) {
+    setResources(prev =>
+      prev.map(r =>
+        r.id === resourceId
+          ? { ...r, toggling: true }
+          : r
+      )
     )
-  )
 
-  try {
-    const response = await fetch(
-      currentlyCompleted
-        ? `/api/resource-progress?resourceId=${resourceId}`
-        : '/api/resource-progress',
-      {
-        method: currentlyCompleted ? 'DELETE' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: currentlyCompleted
-          ? undefined
-          : JSON.stringify({ resourceId }),
+    try {
+      const t6 = Date.now()
+
+      const response = await fetch(
+        currentlyCompleted
+          ? `/api/resource-progress?resourceId=${resourceId}`
+          : '/api/resource-progress',
+        {
+          method: currentlyCompleted ? 'DELETE' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: currentlyCompleted
+            ? undefined
+            : JSON.stringify({ resourceId }),
+        }
+      )
+
+      console.log(`SkillDetailPage fetch resource-progress: ${Date.now() - t6}ms`)
+
+      const t7 = Date.now()
+
+      const data = await response.json()
+
+      console.log(`SkillDetailPage response.json: ${Date.now() - t7}ms`)
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong')
       }
-    )
 
-    const data = await response.json()
+      setResources(prev =>
+        prev.map(r =>
+          r.id === resourceId
+            ? {
+                ...r,
+                completed: !currentlyCompleted,
+                toggling: false,
+              }
+            : r
+        )
+      )
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Something went wrong')
+      toast.success(
+        currentlyCompleted
+          ? 'Marked incomplete'
+          : 'Marked complete!'
+      )
+    } catch (error) {
+      setResources(prev =>
+        prev.map(r =>
+          r.id === resourceId
+            ? { ...r, toggling: false }
+            : r
+        )
+      )
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to update progress'
+      )
     }
-
-    setResources(prev =>
-      prev.map(r =>
-        r.id === resourceId
-          ? {
-              ...r,
-              completed: !currentlyCompleted,
-              toggling: false,
-            }
-          : r
-      )
-    )
-
-    toast.success(
-      currentlyCompleted
-        ? 'Marked incomplete'
-        : 'Marked complete!'
-    )
-  } catch (error) {
-    setResources(prev =>
-      prev.map(r =>
-        r.id === resourceId
-          ? { ...r, toggling: false }
-          : r
-      )
-    )
-
-    toast.error(
-      error instanceof Error
-        ? error.message
-        : 'Failed to update progress'
-    )
   }
-}
 
   const completedCount = resources.filter(r => r.completed).length
-  const pct = resources.length > 0 ? Math.round((completedCount / resources.length) * 100) : 0
+
+  const pct =
+    resources.length > 0
+      ? Math.round((completedCount / resources.length) * 100)
+      : 0
+
+  console.log(`SkillDetailPage total: ${Date.now() - t0}ms`)
 
   if (loading) {
     return (

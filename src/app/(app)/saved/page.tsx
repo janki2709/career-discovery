@@ -16,6 +16,8 @@ type SavedCareer = {
 }
 
 export default function SavedCareersPage() {
+  const t0 = Date.now()
+
   const [savedCareers, setSavedCareers] = useState<SavedCareer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,14 +27,18 @@ export default function SavedCareersPage() {
       try {
         setLoading(true)
 
+        const t1 = Date.now()
         const response = await fetch('/api/saved-careers')
+        console.log(`fetch /api/saved-careers: ${Date.now() - t1}ms`)
 
         if (response.status === 401) {
           window.location.href = '/login'
           return
         }
 
+        const t2 = Date.now()
         const result = await response.json()
+        console.log(`response.json: ${Date.now() - t2}ms`)
 
         if (!response.ok) {
           throw new Error(
@@ -60,6 +66,8 @@ export default function SavedCareersPage() {
   const careers = savedCareers
     .map((item) => item.careers)
     .filter(Boolean)
+
+  console.log(`saved-careers total time: ${Date.now() - t0}ms`)
 
   return (
     <div className="space-y-6">
