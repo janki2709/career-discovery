@@ -39,13 +39,18 @@ function formatSalary(value: number) {
 }
 
 export default async function DashboardPage() {
+  const t0 = Date.now()
   const supabase = await createClient()
+  console.log(`createClient: ${Date.now() - t0}ms`)
 
+  const t1 = Date.now()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+  console.log(`getUser: ${Date.now() - t1}ms`)
 
+  const t2 = Date.now()
   const [
     { data: categories },
     { data: popularCareers },
@@ -78,6 +83,8 @@ export default async function DashboardPage() {
       .order('id', { ascending: false })
       .limit(3),
   ])
+  console.log(`all queries: ${Date.now() - t2}ms`)
+  console.log(`total: ${Date.now() - t0}ms`)
 
   return (
     <div className="flex gap-6">
