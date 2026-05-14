@@ -192,3 +192,17 @@ on industries using gin (name gin_trgm_ops);
 
 create index if not exists learning_resources_title_idx
 on learning_resources using gin (title gin_trgm_ops);
+
+-- =====================================================
+--      popular_careers, and top_skills_in_demand
+-- =====================================================
+
+create table popular_careers (
+  career_id uuid primary key references careers(id) on delete cascade,
+  career_name text not null
+);
+
+create table top_skills_in_demand (
+  skill_id uuid primary key references skills(id) on delete cascade,
+  skill_name text not null
+);

@@ -13,6 +13,7 @@ import {
   Building2,
   Route,
   Bookmark,
+  ClipboardCheck,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -23,18 +24,18 @@ const navItems = [
   { label: 'Skills Library', href: '/skills', icon: BookOpen },
   { label: 'Industries', href: '/industries', icon: Building2 },
   { label: 'Courses', href: '/courses', icon: BookOpen },
+  { label: 'Assessments', href: '/assessments', icon: ClipboardCheck },
   { label: 'Saved', href: '/saved', icon: Heart },
   { label: 'Bookmarks', href: '/bookmarks', icon: Bookmark },
-  { label: 'Progress', href: '/progress', icon: TrendingUp },
 ]
 
 export function SidebarNav() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-56 shrink-0 bg-white border-r min-h-screen flex flex-col py-6 px-3">
+    <aside className="w-72 shrink-0 bg-white border-r min-h-screen flex flex-col py-6 px-4">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-2 mb-10">
+      <div className="flex items-center gap-3 px-2 mb-12">
         <div className="h-11 w-11 rounded-full border-2 border-violet-500 flex items-center justify-center">
           <Compass className="h-5 w-5 text-violet-500" strokeWidth={2.5} />
         </div>
@@ -51,7 +52,7 @@ export function SidebarNav() {
       </div>
 
       {/* Nav links */}
-      <nav className="flex-1 space-y-1">
+      <nav className="space-y-1">
         {navItems.map(({ label, href, icon: Icon }) => {
           const isActive = pathname === href || pathname.startsWith(`${href}/`)
           return (
@@ -71,6 +72,35 @@ export function SidebarNav() {
           )
         })}
       </nav>
+    
+      {/* Assessment Card */}
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-3">
+        <div className="overflow-hidden rounded-xl">
+          <img
+            src="/assessment-card.png"
+            alt="Assessment"
+            className="w-full rounded-lg object-cover"
+          />
+        </div>
+
+        <div className="px-1 pt-4">
+          <h3 className="text-[22px] leading-7 font-semibold text-slate-900">
+            Not sure where to start?
+          </h3>
+
+          <p className="mt-2 text-[15px] leading-6 text-slate-500">
+            Take an assessment and get personalized career recommendations.
+          </p>
+
+          <Link
+            href="/assessments"
+            className="mt-5 flex h-12 items-center justify-center rounded-xl bg-violet-600 text-[15px] font-semibold text-white transition hover:bg-violet-700"
+          >
+            Take Assessment
+          </Link>
+        </div>
+      </div>
     </aside>
+
   )
 }

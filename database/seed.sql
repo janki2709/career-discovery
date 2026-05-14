@@ -1780,3 +1780,11 @@ VALUES
     ('ec22a829-1057-43e3-ad27-fb528318ddea', '0ec31850-023c-4364-9fd3-b9f390d86e47'),
     ('ec22a829-1057-43e3-ad27-fb528318ddea', '0ef86871-bb02-406a-a72e-91a7c0016788'),
     ('ec22a829-1057-43e3-ad27-fb528318ddea', '1069c2b1-60ea-4bc5-9e6e-e685122d56bf');
+
+
+INSERT INTO popular_careers (career_id, career_name)
+VALUES 
+    ('a0e101e7-ade3-42c9-9b78-0cae639a0f63', 'AI Engineer'),
+    ('04b99042-b88b-4d05-868f-b1721b4e099a', 'Digital Marketing Specialist'),
+    ('99c98c37-f963-422a-828e-4defae33d0fb', 'Clinical Psychologist'),
+    ('4938f881-caa9-48d6-9653-efe1a4d8b302', 'Financial Analyst');
