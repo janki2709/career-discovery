@@ -69,6 +69,60 @@ Test@12345
 - Access curated learning resources
 - Filter careers by category
 
+## Career Paths
+
+- Explore structured career paths
+- View detailed career path roadmaps
+- Understand learning progression
+- Navigate through role-based growth paths
+
+### Routes
+
+- `/career-path`
+- `/career-path/[slug]`
+
+---
+
+## Industries
+
+- Browse industries
+- Explore careers within industries
+- Navigate industry-specific opportunities
+
+### Routes
+
+- `/industries`
+- `/industries/[slug]`
+
+---
+
+## Courses & Learning Resources
+
+- Explore curated learning resources
+- Browse skill-based learning material
+- Access external learning content
+
+### Routes
+
+- `/courses`
+
+---
+
+## Search
+
+Global search functionality supports:
+
+- Careers
+- Career paths
+- Courses
+- Industries
+
+### Features
+
+- Debounced search
+- Optimized querying
+- Fast UI interactions
+
 ---
 
 ## Authenticated User Features
@@ -213,6 +267,108 @@ Unauthenticated users receive:
 **GET** `/api/saved-careers`
 
 Returns saved careers for authenticated users.
+
+
+## Bookmarks
+
+Users can:
+
+- Bookmark careers
+- Save learning resources
+- Manage saved content
+
+### Routes
+
+- `/bookmarks`
+
+---
+
+## Career Paths
+
+`/api/career-path`
+
+Supports:
+
+* GET
+
+---
+
+## Career Path Details
+
+`/api/career-path/[slug]`
+
+Supports:
+
+* GET
+
+---
+
+## Industries
+
+`/api/industries`
+
+Supports:
+
+* GET
+
+---
+
+## Industry Details
+
+`/api/industries/[slug]`
+
+Supports:
+
+* GET
+
+---
+
+## Courses & Learning Resources
+
+`/api/courses`
+
+Supports:
+
+* GET
+
+---
+
+## Search
+
+`/api/search`
+
+Supports:
+
+* GET
+
+Supports searching across:
+
+* Careers
+* Career paths
+* Industries
+* Courses
+
+---
+
+## Bookmarks
+
+`/api/bookmarks`
+
+Supports:
+
+* GET
+* POST
+
+---
+
+## Remove Bookmark
+
+`/api/bookmarks/[resourceId]`
+
+Supports:
+
+* DELETE
+
 
 ---
 
@@ -432,6 +588,55 @@ The application is deployed on:
 
 - Vercel
 - Supabase
+
+---
+
+## Performance Optimizations
+
+Significant infrastructure and frontend optimizations were implemented.
+
+### Infrastructure Improvements
+
+#### Database Migration
+
+The Supabase database region was migrated:
+
+* AP Northeast (Tokyo) → Mumbai
+
+#### Deployment Migration
+
+The Vercel deployment region was migrated:
+
+* Washington DC → Mumbai
+
+This reduced average request latency from approximately:
+
+* ~2 seconds → ~600ms
+
+The earlier latency was primarily caused by cross-region network round trips between the frontend deployment and database infrastructure.
+
+---
+
+### Frontend Optimizations
+
+* Debounced global search
+* Improved dashboard rendering
+* Reduced unnecessary requests
+* Optimized component structure
+* Better data fetching patterns
+
+---
+
+### Future Performance Improvements
+
+Potential additional optimizations include:
+
+* CDN edge caching
+* Redis/server-side caching
+* Route segment caching
+* Streaming React Server Components
+* Query optimization
+* Pagination
 
 ---
 
