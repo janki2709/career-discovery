@@ -372,6 +372,21 @@ export default function CareersPage() {
                         Senior: {career.senior_salary_range}
                       </p>
                     </div>
+
+<div className="grid grid-cols-2 gap-2 pt-2">
+  <Button asChild variant="outline" size="sm">
+    <Link href={`/careers/${career.id}`}>
+      View Career
+    </Link>
+  </Button>
+
+  <Button asChild size="sm">
+    <Link href={`/career-path/${career.slug}`}>
+      View Career Path
+    </Link>
+  </Button>
+</div>
+
                   </div>
                 </CardContent>
               </Card>

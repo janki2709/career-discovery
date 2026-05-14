@@ -104,3 +104,91 @@ create table public.skills (
   constraint skills_name_key unique (name),
   constraint skills_slug_key unique (slug)
 ) TABLESPACE pg_default;
+
+create table public.industries (
+  id uuid not null default gen_random_uuid(),
+  name text not null,
+  slug text not null,
+  description text null,
+  icon text null,
+  created_at timestamp without time zone null default now(),
+  constraint industries_pkey primary key (id),
+  constraint industries_name_key unique (name),
+  constraint industries_slug_key unique (slug)
+) TABLESPACE pg_default;
+
+
+create table public.career_industries (
+  career_id uuid not null,
+  industry_id uuid not null,
+  constraint career_industries_pkey primary key (career_id, industry_id),
+  constraint career_industries_career_id_fkey foreign key (career_id)
+    references careers (id) on delete cascade,
+  constraint career_industries_industry_id_fkey foreign key (industry_id)
+    references industries (id) on delete cascade
+) TABLESPACE pg_default;
+
+create table public.career_paths (
+  id uuid primary key default gen_random_uuid(),
+  career_id uuid not null references public.careers(id) on delete cascade,
+  step_order integer not null,
+  stage_type text not null,
+  title text not null,
+  description text,
+  duration text,
+  requirements text,
+  outcome text,
+  optional boolean not null default false,
+  created_at timestamp with time zone not null default now()
+);
+
+create index idx_career_paths_career_id
+on public.career_paths(career_id);
+
+create index idx_career_paths_step_order
+on public.career_paths(career_id, step_order);
+
+
+create table public.bookmarked_resources (
+  id uuid not null default gen_random_uuid(),
+  user_id uuid not null,
+  resource_id uuid not null,
+  created_at timestamp without time zone null default now(),
+
+  constraint bookmarked_resources_pkey
+    primary key (id),
+
+  constraint bookmarked_resources_user_id_resource_id_key
+    unique (user_id, resource_id),
+
+  constraint bookmarked_resources_user_id_fkey
+    foreign key (user_id)
+    references profiles (id)
+    on delete cascade,
+
+  constraint bookmarked_resources_resource_id_fkey
+    foreign key (resource_id)
+    references learning_resources (id)
+    on delete cascade
+) TABLESPACE pg_default;
+
+
+-- =====================================================
+--      INDEXES FOR FAST SEARCH FUNCTIONALITY
+-- =====================================================
+
+
+create index if not exists careers_title_idx
+on careers using gin (title gin_trgm_ops);
+
+create index if not exists careers_description_idx
+on careers using gin (short_description gin_trgm_ops);
+
+create index if not exists skills_name_idx
+on skills using gin (name gin_trgm_ops);
+
+create index if not exists industries_name_idx
+on industries using gin (name gin_trgm_ops);
+
+create index if not exists learning_resources_title_idx
+on learning_resources using gin (title gin_trgm_ops);

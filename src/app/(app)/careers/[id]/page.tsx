@@ -136,19 +136,25 @@ export default async function CareerDetailPage({
     </h1>
   </div>
 
-  <div className="flex items-center gap-2">
-    <Button asChild>
-      <Link href={`/careers/${career.id}/learn`}>
-        <BookOpen className="h-4 w-4 mr-2" />
-        Start Learning
-      </Link>
-    </Button>
+<div className="flex items-center gap-2">
+  <Button asChild variant="outline">
+    <Link href={`/career-path/${career.slug}`}>
+      View Career Path
+    </Link>
+  </Button>
 
-    <SaveCareerButton
-      careerId={career.id}
-      initialSaved={career.is_saved}
-    />
-  </div>
+  <Button asChild>
+    <Link href={`/careers/${career.id}/learn`}>
+      <BookOpen className="h-4 w-4 mr-2" />
+      Start Learning
+    </Link>
+  </Button>
+
+  <SaveCareerButton
+    careerId={career.id}
+    initialSaved={career.is_saved}
+  />
+</div>
 </div>
 
           <div className="flex flex-wrap gap-2">

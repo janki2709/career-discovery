@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowLeft, BookOpen, CheckCircle2, Circle, ExternalLink, Loader2 } from 'lucide-react'
+import { ArrowLeft,BookOpen, CheckCircle2, Circle, ExternalLink, Loader2, Bookmark,} from 'lucide-react'
 import { toast } from 'sonner'
 
 type Resource = {
@@ -19,6 +19,8 @@ type Resource = {
   url: string
   completed: boolean
   toggling: boolean
+  bookmarked: boolean
+  bookmarkLoading: boolean
 }
 
 type Skill = {
@@ -93,19 +95,30 @@ export default function SkillDetailPage() {
 
       console.log(`SkillDetailPage query user_resource_progress: ${Date.now() - t5}ms`)
 
+      const { data: bookmarksData } = await supabase
+  .from('bookmarked_resources')
+  .select('resource_id')
+  .eq('user_id', userId!)
+
+const bookmarkedSet = new Set(
+  (bookmarksData ?? []).map(b => b.resource_id)
+)
+
       const completedSet = new Set(
         (progressData ?? [])
           .filter(p => p.completed)
           .map(p => p.learning_resource_id)
       )
 
-      setResources(
-        (resourcesData ?? []).map(r => ({
-          ...r,
-          completed: completedSet.has(r.id),
-          toggling: false,
-        }))
-      )
+setResources(
+  (resourcesData ?? []).map(r => ({
+    ...r,
+    completed: completedSet.has(r.id),
+    toggling: false,
+    bookmarked: bookmarkedSet.has(r.id),
+    bookmarkLoading: false,
+  }))
+)
 
       setLoading(false)
     }
@@ -188,6 +201,78 @@ export default function SkillDetailPage() {
       )
     }
   }
+
+async function toggleBookmark(
+  resourceId: string,
+  currentlyBookmarked: boolean
+) {
+  setResources(prev =>
+    prev.map(r =>
+      r.id === resourceId
+        ? { ...r, bookmarkLoading: true }
+        : r
+    )
+  )
+
+  try {
+    const response = await fetch(
+      currentlyBookmarked
+        ? `/api/bookmarks/${resourceId}`
+        : '/api/bookmarks',
+      {
+        method: currentlyBookmarked ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: currentlyBookmarked
+          ? undefined
+          : JSON.stringify({
+              resource_id: resourceId,
+            }),
+      }
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || 'Failed to update bookmark'
+      )
+    }
+
+    setResources(prev =>
+      prev.map(r =>
+        r.id === resourceId
+          ? {
+              ...r,
+              bookmarked: !currentlyBookmarked,
+              bookmarkLoading: false,
+            }
+          : r
+      )
+    )
+
+    toast.success(
+      currentlyBookmarked
+        ? 'Bookmark removed'
+        : 'Resource bookmarked'
+    )
+  } catch (error) {
+    setResources(prev =>
+      prev.map(r =>
+        r.id === resourceId
+          ? { ...r, bookmarkLoading: false }
+          : r
+      )
+    )
+
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : 'Failed to update bookmark'
+    )
+  }
+}
 
   const completedCount = resources.filter(r => r.completed).length
 
@@ -297,6 +382,29 @@ export default function SkillDetailPage() {
                       <span className="text-xs text-slate-400 capitalize">{resource.resource_type}</span>
                     )}
                   </div>
+
+<button
+  onClick={() =>
+    toggleBookmark(
+      resource.id,
+      resource.bookmarked
+    )
+  }
+  disabled={resource.bookmarkLoading}
+  className="shrink-0"
+>
+  {resource.bookmarkLoading ? (
+    <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+  ) : (
+    <Bookmark
+      className={`h-4 w-4 transition ${
+        resource.bookmarked
+          ? 'fill-current text-violet-600'
+          : 'text-slate-300 hover:text-violet-500'
+      }`}
+    />
+  )}
+</button>
 
                   {resource.url && (
                     <a

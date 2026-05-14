@@ -1,3 +1,5 @@
+// src/app/api/careers/[id]/route.ts
+
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { careerSchema } from '@/lib/validations'

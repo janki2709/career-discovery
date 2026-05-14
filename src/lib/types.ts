@@ -1,3 +1,5 @@
+// src/lib/types.ts
+
 // ─── Database entity types ───────────────────────────────────────────────────
 
 export interface Category {
@@ -103,4 +105,30 @@ export interface CareerFilters {
   demand_level?: 'high' | 'medium' | 'low' | ''
   page?: number
   limit?: number
+}
+
+export interface CareerPathStep {
+  id: string
+  career_id: string
+
+  step_order: number
+
+  stage_type:
+    | 'education'
+    | 'skill'
+    | 'project'
+    | 'internship'
+    | 'job'
+    | 'senior_role'
+
+  title: string
+  description: string
+  duration: string
+  requirements: string
+  outcome: string
+}
+
+export interface CareerPathResponse {
+  career: Career
+  steps: CareerPathStep[]
 }
